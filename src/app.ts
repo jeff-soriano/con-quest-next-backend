@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer'
@@ -9,12 +11,15 @@ import cors from 'cors'
 import { typeDefs } from './schemas'
 import { resolvers } from './resolvers'
 import mongoose from 'mongoose'
+import connectToDatabase from './database'
 
 interface MyContext {
   token?: String
 }
 
 async function startApolloServer() {
+  await connectToDatabase() // Ensure database connection before starting the server
+
   // Create the Express application
   const app = express()
 
@@ -41,13 +46,10 @@ async function startApolloServer() {
     })
   )
 
-  // Connect to MongoDB
-  await mongoose.connect('mongodb://localhost:27017/yourDatabaseName')
-  console.log('Connected to MongoDB')
-
   // Start the HTTP server
+  const PORT = process.env.PORT || 4000
   await new Promise<void>((resolve) =>
-    httpServer.listen({ port: 4000 }, resolve)
+    httpServer.listen({ port: PORT }, resolve)
   )
   console.log(`🚀 Server ready at http://localhost:4000/graphql`)
 }
